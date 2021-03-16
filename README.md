@@ -3,6 +3,12 @@
 The goal of webrtcbuilds is to provide a single standalone static library and
 package for WebRTC.
 
+## LiveAgentMac
+
+```
+$ ./build.sh -b branch-heads/4389 2>&1 | tee build.log
+```
+
 ## Current Platforms and Prerequisites
 
 * OSX (requires [Homebrew](http://brew.sh/) is installed)

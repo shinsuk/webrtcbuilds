@@ -237,7 +237,7 @@ video_capture_external.o|device_info_external.o"
 
   gn gen $outputdir --args="$gn_args"
   pushd $outputdir >/dev/null
-  ninja -C .
+  ninja -C . default jsoncpp rtc_json libaom_nasm
 
   rm -f libwebrtc_full.a
   # Produce an ordered objects list by parsing .ninja_deps for strings
@@ -273,6 +273,13 @@ function compile() {
   local disable_iterator_debug="$6"
   local common_args="is_component_build=false rtc_include_tests=false treat_warnings_as_errors=false"
   local target_args="target_os=\"$target_os\" target_cpu=\"$target_cpu\""
+
+  common_args+=' fatal_linker_warnings=true'
+  common_args+=' is_clang=true'
+  common_args+=' libyuv_include_tests=false'
+  common_args+=' rtc_build_tools=false'
+  common_args+=' rtc_use_dummy_audio_file_devices=true'
+  common_args+=' use_rtti=true'
 
   [ "$disable_iterator_debug" = 1 ] && common_args+=' enable_iterator_debugging=false'
   pushd $outdir/src >/dev/null
@@ -350,10 +357,20 @@ function package::prepare() {
     popd >/dev/null
   fi
   popd >/dev/null
+
+  # copy jsoncpp header files
+  pushd $headersSourceDir
+  ( cd ./src/third_party/jsoncpp/source/include && tar cf - . ) | ( cd $headersDestDir && tar xf - )
+  popd >/dev/null
+
   # find and copy libraries
   pushd src/out >/dev/null
   find . -maxdepth 3 \( -name '*.so' -o -name '*.dll' -o -name '*webrtc_full*' -o -name *.jar \) \
     -exec $CP --parents '{}' $outdir/$package_filename/lib ';'
+  for cfg in $configs; do
+
+    $CP $cfg/obj/third_party/libaom/libaom_nasm.a $outdir/$package_filename/lib/$cfg
+  done
   popd >/dev/null
 
   # for linux, add pkgconfig files
